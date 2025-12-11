@@ -1,0 +1,26 @@
+USE [Testing]
+GO
+
+/****** Object:  Table [dbo].[GuestBook]    Script Date: 12/11/2025 1:54:09 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[GuestBook](
+	[GuestId] [int] IDENTITY(1,1) NOT NULL,
+	[EmailAddress] [varchar](100) NULL,
+	[Comment] [text] NULL,
+	[CreatedDate] [datetime] NULL,
+ CONSTRAINT [PK_GuestBook] PRIMARY KEY CLUSTERED 
+(
+	[GuestId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[GuestBook] ADD  CONSTRAINT [DF_GuestBook_CreatedDate]  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+
+
