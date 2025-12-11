@@ -7,4 +7,10 @@
     <RootNamespace>core_mvc_guestbook</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Data\Domain.csproj" />
+  </ItemGroup>
+
+
+
 </Project>

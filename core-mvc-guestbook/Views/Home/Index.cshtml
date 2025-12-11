@@ -1,8 +1,66 @@
-﻿@{
+﻿@model List<Domain.Models.GuestBook>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (Model != null && Model.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Email</th>
+                    <th>Comment</th>
+                    <th>Date Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entry in Model)
+                {
+                    <tr>
+                        <td>@entry.EmailAddress</td>
+                        <td>@entry.Comment</td>
+                        <td>@entry.CreatedDate</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        No entries just yet.
+    </div>
+}
+@using (Html.BeginForm("AddEntry", "Home", FormMethod.Post))
+{
+    <div class="form-floating mb-3">
+        <input type="text"
+               class="form-control"
+               id="EmailAddress"
+               name="EmailAddress"
+               autocomplete="off" />
+        <label for="EmailAddress">Email</label>
+    </div>
+
+    <div class="form-floating mb-3">
+        <textarea class="form-control"
+                  id="Comment"
+                  name="Comment"
+                  style="height: 120px;"
+                  autocomplete="off"></textarea>
+        <label for="Comment">Comment</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

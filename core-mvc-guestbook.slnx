@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="core-mvc-guestbook/core-mvc-guestbook.csproj" />
+  <Project Path="core-mvc-guestbook/Web.csproj" />
+  <Project Path="Data/Domain.csproj" Id="a364213c-e78c-4b58-bffc-03f88873c5b9" />
 </Solution>

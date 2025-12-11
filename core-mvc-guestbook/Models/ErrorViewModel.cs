@@ -1,4 +1,4 @@
-namespace core_mvc_guestbook.Models
+namespace Web.Models
 {
     public class ErrorViewModel
     {

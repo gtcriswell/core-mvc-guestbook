@@ -1,14 +1,39 @@
 using System.Diagnostics;
-using core_mvc_guestbook.Models;
+using Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Domain.Models;
+using Domain.Business;
 
-namespace core_mvc_guestbook.Controllers
+namespace Web
 {
     public class HomeController : Controller
     {
+        private readonly IGBRepository _gBRepository;
+
+        public HomeController(IGBRepository gBRepository)
+        {
+            _gBRepository = gBRepository;
+        }
+
+        public List<GuestBook> Entries()
+        {
+            return _gBRepository.GetEntries().OrderByDescending(e => e.CreatedDate).ToList();
+        }
+
         public IActionResult Index()
         {
-            return View();
+            return View(Entries());
+        }
+
+        [HttpPost]
+        public IActionResult AddEntry(GuestBook guestBook)
+        {
+            if (ModelState.IsValid)
+            {
+                guestBook = _gBRepository.AddEntry(guestBook);
+            }
+
+            return View("Index", Entries());
         }
 
         public IActionResult Privacy()
