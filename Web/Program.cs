@@ -1,19 +1,23 @@
-using Domain.Business;
-using Domain.Data;
-using Microsoft.EntityFrameworkCore;
+using Services;
+using Web.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+var configuration = builder.Configuration;
+ClientSettings clientSettingsSection = configuration
+    .GetRequiredSection("ClientSettings")
+    .Get<ClientSettings>()!;
 
-// Add DbContext with connection string
-builder.Services.AddDbContext<GBContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+clientSettingsSection ??= new();
 
-builder.Services.AddScoped<IGBRepository, GBRepository>();
+builder.Services.AddHttpClient("API", client =>
+{
+    client.BaseAddress = new Uri(clientSettingsSection.ApiUrl);
+});
+
+builder.Services.AddScoped<IGuestService, GuestService>();
 
 var app = builder.Build();
 
@@ -26,6 +30,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
 app.UseAuthorization();

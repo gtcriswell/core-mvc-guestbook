@@ -1,43 +1,75 @@
-﻿using Domain.Data;
+﻿using Dapper;
 using Domain.Models;
+using Microsoft.Data.SqlClient;
 
 namespace Domain.Business
 {
-    public class GBRepository: IGBRepository
+    public class GBRepository : IGBRepository
     {
-        private readonly GBContext _gBContext;
-        public GBRepository(GBContext context)
+        private readonly string _connectionString;
+
+        public GBRepository(string connectionString)
         {
-            _gBContext = context;
+            _connectionString = connectionString;
         }
 
-        public IQueryable<GuestBook> GetEntries()
+        public async Task<List<GuestBook>> GetEntries()
         {
-            return _gBContext.GuestBooks;
-        }
-
-        public GuestBook? GetEntry(int id)
-        {
-            return _gBContext.GuestBooks.Find(id);
-        }
-
-        public GuestBook AddEntry(GuestBook entry)
-        {
-            _gBContext.GuestBooks.Add(entry);
-            _gBContext.SaveChanges();
-            return entry;
-        }
-
-        public void RemoveEntry(int id)
-        {
-            var entry = GetEntry(id);
-            if(entry == null)
+            using (var connection = new SqlConnection(_connectionString))
             {
-                return;
+                await connection.OpenAsync();
+
+                string sql = "SELECT * FROM [GuestBook] ORDER BY GuestId DESC";
+                var results = await connection.QueryAsync<GuestBook>(sql);
+
+                return results.ToList();
             }
-            _gBContext.GuestBooks.Remove(entry);
-            _gBContext.SaveChanges();
-            return;
+        }
+
+        public async Task<GuestBook> GetEntry(int id)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string sql = "SELECT TOP 1 * FROM [GuestBook] WHERE GuestId = @GuestId";
+                var result = await connection.QuerySingleOrDefaultAsync<GuestBook>(sql, new { GuestId = id });
+
+                if (result != null)
+                { 
+                    return result; 
+                }
+                return new();
+
+            }
+
+        }
+
+        public async Task<GuestBook> AddEntry(GuestBook entry)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var sql = "INSERT INTO [GuestBook] ([EmailAddress], [Comment]) VALUES (@EmailAddress, @Comment); SELECT CAST(SCOPE_IDENTITY() as int)";
+
+                var identity = connection.Execute(sql, new { EmailAddress = entry.EmailAddress, Comment = entry.Comment });
+
+                return await GetEntry(identity);
+            }
+        }
+
+        public async Task RemoveEntry(int id)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var sql = "DELETE [GuestBook] WHERE GuestId = @GuestId";
+
+                var identity = connection.Execute(sql, new { GuestId = id });
+
+            }
         }
     }
 }

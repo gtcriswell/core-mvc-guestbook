@@ -1,16 +1,15 @@
-﻿using Domain.Data;
-using Domain.Models;
+﻿using Domain.Models;
 
 namespace Domain.Business
 {
     public interface IGBRepository
     {
-        public IQueryable<GuestBook> GetEntries();
+        public Task<List<GuestBook>> GetEntries();
 
-        public GuestBook? GetEntry(int id);
+        public Task <GuestBook> GetEntry(int id);
 
-        public GuestBook AddEntry(GuestBook entry);
+        public Task <GuestBook> AddEntry(GuestBook entry);
 
-        public void RemoveEntry(int id);
+        public Task RemoveEntry(int id);
     }
 }

@@ -1,39 +1,51 @@
+using Domain.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using Services;
 using System.Diagnostics;
 using Web.Models;
-using Microsoft.AspNetCore.Mvc;
-using Domain.Models;
-using Domain.Business;
 
 namespace Web
 {
     public class HomeController : Controller
     {
-        private readonly IGBRepository _gBRepository;
+        private readonly IGuestService _guestService;
 
-        public HomeController(IGBRepository gBRepository)
+        public HomeController(IGuestService guestService)
         {
-            _gBRepository = gBRepository;
+            _guestService = guestService;
         }
 
-        public List<GuestBook> Entries()
+        public async Task<List<GuestbookDto>> Entries()
         {
-            return _gBRepository.GetEntries().OrderByDescending(e => e.CreatedDate).ToList();
+            return await _guestService.GetEntries();
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(Entries());
+            var entries = await Entries();
+            return View(entries);
         }
 
         [HttpPost]
-        public IActionResult AddEntry(GuestBook guestBook)
+        public async Task<IActionResult> AddEntry(GuestbookDto guestbookDto)
         {
             if (ModelState.IsValid)
             {
-                guestBook = _gBRepository.AddEntry(guestBook);
+                guestbookDto = await _guestService.AddEntry(guestbookDto);
             }
 
-            return View("Index", Entries());
+            var entries = await Entries();
+            return View("Index", entries);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveEntry(int id)
+        {
+
+            await _guestService.RemoveEntry(id);
+
+            var entries = await Entries();
+            return View("Index", entries);
         }
 
         public IActionResult Privacy()
