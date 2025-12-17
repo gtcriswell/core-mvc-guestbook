@@ -2,5 +2,6 @@
   <Project Path="API/API.csproj" />
   <Project Path="Data/Domain.csproj" />
   <Project Path="Services/Services.csproj" Id="cd98981f-8fa1-4e39-a4c7-88807633dd2a" />
+  <Project Path="Tests/Tests.csproj" />
   <Project Path="Web/Web.csproj" />
 </Solution>
