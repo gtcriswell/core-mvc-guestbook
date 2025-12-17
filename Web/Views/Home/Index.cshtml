@@ -4,55 +4,9 @@
     ViewData["Title"] = "Home Page";
 }
 
-@if (Model != null && Model.Any())
-{
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>Email</th>
-                    <th>Comment</th>
-                    <th>Date Created</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var entry in Model)
-                {
-                    <tr>
-                        <td>@entry.EmailAddress</td>
-                        <td>@entry.Comment</td>
-                        <td>@entry.CreatedDate</td>
-                        <td>
-                            <!-- Delete Entry Form -->
-                            @using (Html.BeginForm("RemoveEntry", "Home", FormMethod.Post))
-                            {
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden("id", entry.GuestId)
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this entry?');">
-                                    Delete
-                                </button>
-                            }
-                        </td>
-                        <td>
-                            <!-- Edit Button that triggers the Modal -->
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal" onclick="editEntry('@entry.GuestId', '@entry.EmailAddress', '@entry.Comment')">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
-else
-{
-    <div class="alert alert-info mt-3">
-        No entries just yet.
-    </div>
-}
+<div id="entriesContainer">
+    @await Html.PartialAsync("_EntriesTable", Model)
+</div>
 
 <!-- Modal for Editing -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -63,42 +17,41 @@ else
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                @using (Html.BeginForm("UpdateEntry", "Home", FormMethod.Post))
-                {
+                <form id="updateEntryForm">
                     @Html.AntiForgeryToken()
                     <div class="form-floating mb-3">
-                        <input type="hidden" id="GuestId" name="GuestId" />
-                        <input type="email" class="form-control" id="EmailAddress" name="EmailAddress" autocomplete="off" required />
-                        <label for="EmailAddress">Email</label>
+                        <input type="hidden" id="EditGuestId" name="GuestId" />
+                        <input type="email" class="form-control" id="EditEmailAddress" name="EmailAddress" autocomplete="off" required />
+                        <label for="EditEmailAddress">Email</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <textarea class="form-control" id="Comment" name="Comment" style="height: 120px;" autocomplete="off" required></textarea>
-                        <label for="Comment">Comment</label>
+                        <textarea class="form-control" id="EditComment" name="Comment" style="height: 120px;" autocomplete="off" required></textarea>
+                        <label for="EditComment">Comment</label>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Save Changes</button>
-                }
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Add Entry Form -->
-@using (Html.BeginForm("AddEntry", "Home", FormMethod.Post))
-{
+<form id="addEntryForm">
+    @Html.AntiForgeryToken()
     <div class="form-floating mb-3">
-        <input type="email" class="form-control" id="EmailAddress" name="EmailAddress" autocomplete="off" />
-        <label for="EmailAddress">Email</label>
+        <input type="email" class="form-control" id="AddEmailAddress" name="EmailAddress" autocomplete="off" />
+        <label for="AddEmailAddress">Email</label>
     </div>
 
     <div class="form-floating mb-3">
-        <textarea class="form-control" id="Comment" name="Comment" style="height: 120px;" autocomplete="off"></textarea>
-        <label for="Comment">Comment</label>
+        <textarea class="form-control" id="AddComment" name="Comment" style="height: 120px;" autocomplete="off"></textarea>
+        <label for="AddComment">Comment</label>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit</button>
-}
+</form>
 
 @section Scripts {
     @{
@@ -106,11 +59,87 @@ else
     }
 
     <script>
+        // helper to get antiforgery token value from the generated hidden input
+        function getAntiForgeryToken() {
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            return tokenInput ? tokenInput.value : '';
+        }
+
         // JavaScript to populate the modal form with the selected entry data
         function editEntry(guestId, email, comment) {
-            document.getElementById("GuestId").value = guestId;
-            document.getElementById("EmailAddress").value = email;
-            document.getElementById("Comment").value = comment;
+            document.getElementById("EditGuestId").value = guestId;
+            document.getElementById("EditEmailAddress").value = email;
+            document.getElementById("EditComment").value = comment;
         }
+
+        // Submit Add via AJAX
+        document.getElementById('addEntryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+            const res = await fetch('@Url.Action("AddEntryAjax", "Home")', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                const html = await res.text();
+                document.getElementById('entriesContainer').innerHTML = html;
+                form.reset();
+            } else {
+                console.error('Add failed', res.statusText);
+            }
+        });
+
+        // Submit Update via AJAX
+        document.getElementById('updateEntryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+            const res = await fetch('@Url.Action("UpdateEntryAjax", "Home")', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                const html = await res.text();
+                document.getElementById('entriesContainer').innerHTML = html;
+                // hide modal
+                var modalEl = document.getElementById('editModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } else {
+                console.error('Update failed', res.statusText);
+            }
+        });
+
+        // Attach delegated handler for remove forms since entries get replaced
+        document.getElementById('entriesContainer').addEventListener('submit', async function (e) {
+            const form = e.target;
+            if (form.classList.contains('remove-entry-form')) {
+                e.preventDefault();
+                if (!confirm('Are you sure you want to delete this entry?')) return;
+                const entryId = form.dataset.entryId;
+                const formData = new FormData();
+                formData.append('id', entryId);
+                formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+                const res = await fetch('@Url.Action("RemoveEntryAjax", "Home")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const html = await res.text();
+                    document.getElementById('entriesContainer').innerHTML = html;
+                } else {
+                    console.error('Delete failed', res.statusText);
+                }
+            }
+        });
     </script>
 }

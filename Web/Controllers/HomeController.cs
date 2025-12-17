@@ -38,6 +38,19 @@ namespace Web
             return View("Index", entries);
         }
 
+        // AJAX endpoint for Add
+        [HttpPost]
+        public async Task<IActionResult> AddEntryAjax(GuestbookDto guestbookDto)
+        {
+            if (ModelState.IsValid)
+            {
+                await _guestService.AddEntry(guestbookDto);
+            }
+
+            var entries = await Entries();
+            return PartialView("_EntriesTable", entries);
+        }
+
         [HttpPost]
         public async Task<IActionResult> RemoveEntry(int id)
         {
@@ -48,6 +61,15 @@ namespace Web
             return View("Index", entries);
         }
 
+        // AJAX endpoint for Remove
+        [HttpPost]
+        public async Task<IActionResult> RemoveEntryAjax(int id)
+        {
+            await _guestService.RemoveEntry(id);
+            var entries = await Entries();
+            return PartialView("_EntriesTable", entries);
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateEntry(GuestbookDto guestbookDto)
         {
@@ -56,6 +78,15 @@ namespace Web
 
             var entries = await Entries();
             return View("Index", entries);
+        }
+
+        // AJAX endpoint for Update
+        [HttpPost]
+        public async Task<IActionResult> UpdateEntryAjax(GuestbookDto guestbookDto)
+        {
+            await _guestService.UpdateEntry(guestbookDto);
+            var entries = await Entries();
+            return PartialView("_EntriesTable", entries);
         }
 
         public IActionResult Privacy()
