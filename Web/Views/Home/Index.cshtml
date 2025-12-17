@@ -14,6 +14,7 @@
                     <th>Comment</th>
                     <th>Date Created</th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +25,7 @@
                         <td>@entry.Comment</td>
                         <td>@entry.CreatedDate</td>
                         <td>
+                            <!-- Delete Entry Form -->
                             @using (Html.BeginForm("RemoveEntry", "Home", FormMethod.Post))
                             {
                                 @Html.AntiForgeryToken()
@@ -32,7 +34,12 @@
                                     Delete
                                 </button>
                             }
-
+                        </td>
+                        <td>
+                            <!-- Edit Button that triggers the Modal -->
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal" onclick="editEntry('@entry.GuestId', '@entry.EmailAddress', '@entry.Comment')">
+                                Edit
+                            </button>
                         </td>
                     </tr>
                 }
@@ -46,33 +53,64 @@ else
         No entries just yet.
     </div>
 }
+
+<!-- Modal for Editing -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("UpdateEntry", "Home", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-floating mb-3">
+                        <input type="hidden" id="GuestId" name="GuestId" />
+                        <input type="email" class="form-control" id="EmailAddress" name="EmailAddress" autocomplete="off" required />
+                        <label for="EmailAddress">Email</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control" id="Comment" name="Comment" style="height: 120px;" autocomplete="off" required></textarea>
+                        <label for="Comment">Comment</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Entry Form -->
 @using (Html.BeginForm("AddEntry", "Home", FormMethod.Post))
 {
     <div class="form-floating mb-3">
-        <input type="text"
-               class="form-control"
-               id="EmailAddress"
-               name="EmailAddress"
-               autocomplete="off" />
+        <input type="email" class="form-control" id="EmailAddress" name="EmailAddress" autocomplete="off" />
         <label for="EmailAddress">Email</label>
     </div>
 
     <div class="form-floating mb-3">
-        <textarea class="form-control"
-                  id="Comment"
-                  name="Comment"
-                  style="height: 120px;"
-                  autocomplete="off"></textarea>
+        <textarea class="form-control" id="Comment" name="Comment" style="height: 120px;" autocomplete="off"></textarea>
         <label for="Comment">Comment</label>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit</button>
 }
 
-
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // JavaScript to populate the modal form with the selected entry data
+        function editEntry(guestId, email, comment) {
+            document.getElementById("GuestId").value = guestId;
+            document.getElementById("EmailAddress").value = email;
+            document.getElementById("Comment").value = comment;
+        }
+    </script>
 }

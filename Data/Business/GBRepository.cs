@@ -51,11 +51,25 @@ namespace Domain.Business
             {
                 await connection.OpenAsync();
 
-                var sql = "INSERT INTO [GuestBook] ([EmailAddress], [Comment]) VALUES (@EmailAddress, @Comment); SELECT CAST(SCOPE_IDENTITY() as int)";
+                var sql = "INSERT INTO [GuestBook] ([EmailAddress], [Comment], [CreatedDate]) VALUES (@EmailAddress, @Comment, GetDate()); SELECT CAST(SCOPE_IDENTITY() as int)";
 
                 var identity = connection.Execute(sql, new { EmailAddress = entry.EmailAddress, Comment = entry.Comment });
 
                 return await GetEntry(identity);
+            }
+        }
+
+        public async Task<GuestBook> UpdateEntry(GuestBook entry)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var sql = "UPDATE [GuestBook] SET [EmailAddress] = @EmailAddress, [Comment] = @Comment WHERE GuestId = @GuestId";
+
+                var result = connection.Execute(sql, new { EmailAddress = entry.EmailAddress, Comment = entry.Comment, GuestId = entry.GuestId });
+
+                return entry;
             }
         }
 

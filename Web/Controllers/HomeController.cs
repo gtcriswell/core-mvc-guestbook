@@ -48,6 +48,16 @@ namespace Web
             return View("Index", entries);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateEntry(GuestbookDto guestbookDto)
+        {
+
+            await _guestService.UpdateEntry(guestbookDto);
+
+            var entries = await Entries();
+            return View("Index", entries);
+        }
+
         public IActionResult Privacy()
         {
             return View();

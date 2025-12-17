@@ -10,6 +10,8 @@ namespace Domain.Business
 
         public Task <GuestBook> AddEntry(GuestBook entry);
 
+        public Task<GuestBook> UpdateEntry(GuestBook entry);
+
         public Task RemoveEntry(int id);
     }
 }

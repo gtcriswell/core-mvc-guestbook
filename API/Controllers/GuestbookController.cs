@@ -39,6 +39,16 @@ namespace API.Controllers
             return NotFound();
         }
 
+        [HttpPut]
+        [Route("entry")]
+        public async Task<IActionResult> UpdateEntry(GuestBook guestBook)
+        {
+            var result = await _gBRepository.UpdateEntry(guestBook);
+
+            return Ok(result);
+
+        }
+
         [HttpDelete]
         [Route("entry")]
         public async Task<IActionResult> RemoveEntry(int id)
